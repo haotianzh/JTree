@@ -1,19 +1,19 @@
 package labwu.object;
 
 import labwu.util.TreeUtils;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.*;
 
 public class Tree<T> implements Cloneable{
     private T root;
     private int postID;
     private boolean ISTRAERSE;
-    private int treeDepth;
+    private int level;
     private Tree<T> parent;
     private ArrayList<Tree<T>> externalNodes;
     private ArrayList<Tree<T>> internalNodes;
+    private Set<Tree<T>> externalNodesSet;
+    private Set<Tree<T>> internalNodesSet;
     private ArrayList<Tree<T>> children;
     private HashMap<T, Tree<T>> leafTable;
 
@@ -21,6 +21,7 @@ public class Tree<T> implements Cloneable{
         ISTRAERSE = false;
         this.root = root;
         this.parent = null;
+        this.level = 0;
         children = new ArrayList<>();
     }
 
@@ -46,9 +47,22 @@ public class Tree<T> implements Cloneable{
 
     public ArrayList<Tree<T>> getExternalNodes() { return externalNodes; }
 
-
     public ArrayList<Tree<T>> getInternalNodes() {
         return internalNodes;
+    }
+
+    public Set<Tree<T>> getExternalNodesSet(){
+        if (externalNodesSet != null){
+            return externalNodesSet;
+        }
+        Set<Tree<T>> hashSet = null;
+        if (externalNodes != null){
+            System.out.println("sjdshfkshe");
+            hashSet = new HashSet<>();
+            hashSet.addAll(externalNodes);
+            externalNodesSet = hashSet;
+        }
+        return externalNodesSet;
     }
 
     private void setExternalNodes(ArrayList<Tree<T>> externalNodes) {
@@ -71,20 +85,49 @@ public class Tree<T> implements Cloneable{
         this.internalNodes.addAll(internalNodes);
     }
 
+    public int getLevel(){
+        return level;
+    }
+
+    private void setLevel(int level) {
+        this.level = level;
+    }
+
+    private void traverseLevel(){
+        // bfs: O(n)
+        Queue<Tree<T>> queue = new LinkedList<>();
+        Queue<Integer> index = new LinkedList<>();
+        queue.add(this);
+        index.add(0);
+        while (!queue.isEmpty()){
+            Tree<T> current = queue.remove();
+            int ind = index.remove();
+//            System.out.println(ind);
+            current.setLevel(ind);
+            for (Tree<T> child : current.getChildren()){
+                queue.add(child);
+                index.add(ind+1);
+            }
+        }
+    }
+
     public void traverse(){
         int id = 0;
         externalNodes = new ArrayList<>();
         internalNodes = new ArrayList<>();
         leafTable = new HashMap<>();
+        // traverse for computing tree depth
+        traverseLevel();
         Tree<T> node = TreeUtils.postOrderNext(this);
         while (node != this){
             if (node.isLeaf()){
                 externalNodes.add(node);
                 leafTable.put(node.getRoot(), node);
-                ArrayList<Tree<T>> temp = new ArrayList<>();
-                node.setInternalNodes(temp);
-                temp.add(node);
-                node.setExternalNodes(temp);
+                ArrayList<Tree<T>> temp1 = new ArrayList<>();
+                node.setInternalNodes(temp1);
+                ArrayList<Tree<T>> temp2 = new ArrayList<>();
+                temp2.add(node);
+                node.setExternalNodes(temp2);
             }else{
                 internalNodes.add(node);
                 ArrayList<Tree<T>> temp1 = new ArrayList<>();
@@ -116,7 +159,7 @@ public class Tree<T> implements Cloneable{
     }
 
 
-    public Tree<T> getMrcaOfTwoLeaves(Tree<T> leaf1, Tree<T> leaf2) throws Exception {
+    public Tree<T> getMrcaOfPair(Tree<T> leaf1, Tree<T> leaf2) throws Exception {
         ArrayList<Tree<T>> leaves = new ArrayList<>();
         leaves.add(leaf1);
         leaves.add(leaf2);
@@ -148,7 +191,7 @@ public class Tree<T> implements Cloneable{
         Map<Tree<T>, Map<Tree<T>, Integer>> M1 = new HashMap<>();
         Map<Tree<T>, Map<Tree<T>, Map<Tree<T>, Integer>>> M2 = new HashMap<>();
         // post-traverse the tree and perform dynamic programming.
-        tree.traverse();
+        if (!tree.isTraverse()) tree.traverse();
         Tree<T> node = TreeUtils.postOrderNext(tree);
         while(true){
             ArrayList<Tree<T>> extNodes = node.getExternalNodes();
@@ -314,9 +357,9 @@ public class Tree<T> implements Cloneable{
         if (!children.contains(child)){
             throw new Exception("Child not found.");
         }else{
-//            setTraverse(false);
             invalidateTraverse();
             child.setParent(null);
+            child.setLevel(0);
             children.remove(child);
         }
     }

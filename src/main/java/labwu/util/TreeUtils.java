@@ -199,6 +199,7 @@ public class TreeUtils {
         Tree<T> node = TreeUtils.postOrderNext(tree);
         while(true){
             ArrayList<Tree<T>> extNodes = node.getExternalNodes();
+            Set<Tree<T>> extNodesSet = node.getExternalNodesSet();
             if (extNodes.size() < 3){
                 M.put(node, 0);
                 for (Tree<T> leaf: extNodes){
@@ -218,10 +219,13 @@ public class TreeUtils {
                 // update M1.
                 Tree<T> left = node.getChildren().get(0);
                 Tree<T> right = node.getChildren().get(1);
+                Set<Tree<T>> leftSet = left.getExternalNodesSet();
+                Set<Tree<T>> rightSet = right.getExternalNodesSet();
                 Tree<T> child1 = null;
                 Tree<T> child2 = null;
                 for (Tree<T> leaf: extNodes){
-                    if (left.getExternalNodes().contains(leaf)){
+//                    if (left.getExternalNodes().contains(leaf)){
+                    if (leftSet.contains(leaf)){
                         child1 = left;
                         child2 = right;
                     }
@@ -238,8 +242,10 @@ public class TreeUtils {
                 Tree<T> vj = null;
                 for (Tree<T> leaf1: extNodes) {
                     for (Tree<T> leaf2 : extNodes) {
-                        if (left.getExternalNodes().contains(leaf1)) vi = left; else vi = right;
-                        if (left.getExternalNodes().contains(leaf2)) vj = left; else vj = right;
+//                        if (left.getExternalNodes().contains(leaf1)) vi = left; else vi = right;
+//                        if (left.getExternalNodes().contains(leaf2)) vj = left; else vj = right;
+                        if (leftSet.contains(leaf1)) vi = left; else vi = right;
+                        if (leftSet.contains(leaf2)) vj = left; else vj = right;
                         int value;
                         Tree<T> sibling;
                         if (vi == vj){
@@ -261,11 +267,15 @@ public class TreeUtils {
                     Tree<T> a = tree.findNodeByValue(triple.get(0));
                     Tree<T> b = tree.findNodeByValue(triple.get(1));
                     Tree<T> c = tree.findNodeByValue(triple.get(2));
-                    if (!extNodes.contains(a) || !extNodes.contains(b) || !extNodes.contains(c))
+//                    if (!extNodes.contains(a) || !extNodes.contains(b) || !extNodes.contains(c))
+                    if (!extNodesSet.contains(a) || !extNodesSet.contains(b) || !extNodesSet.contains(c))
                         continue;
-                    Tree<T> va = left.getExternalNodes().contains(a)? left: right;
-                    Tree<T> vb = left.getExternalNodes().contains(b)? left: right;
-                    Tree<T> vc = left.getExternalNodes().contains(c)? left: right;
+//                    Tree<T> va = left.getExternalNodes().contains(a)? left: right;
+//                    Tree<T> vb = left.getExternalNodes().contains(b)? left: right;
+//                    Tree<T> vc = left.getExternalNodes().contains(c)? left: right;
+                    Tree<T> va = leftSet.contains(a)? left: right;
+                    Tree<T> vb = leftSet.contains(b)? left: right;
+                    Tree<T> vc = leftSet.contains(c)? left: right;
                     int value = 0;
                     if (va == vb && va == vc){
                         continue;

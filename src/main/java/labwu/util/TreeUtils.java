@@ -111,6 +111,80 @@ public class TreeUtils {
         return splits;
     }
 
+
+    public static <T> int[][] pairwiseLCA(Tree<T> tree) throws Exception {
+        // tree traverse
+        if (!tree.isTraverse()) tree.traverse();
+        // get labels of taxa
+        ArrayList<T> labels = new ArrayList<>();
+        for (Tree<T> node: tree.getExternalNodes())
+            labels.add(node.getRoot());
+        labels.sort(null);
+        int numLeaves = labels.size();
+        int[][] pattern = new int[numLeaves][numLeaves];
+        for (int i=0; i<numLeaves-1; i++){
+            for (int j=i+1; j<numLeaves; j++){
+                Tree<T> lca = tree.getMrcaOfPair(tree.findNodeByValue(labels.get(i)), tree.findNodeByValue(labels.get(j)));
+                pattern[i][j] = lca.getLevel();
+                pattern[j][i] = lca.getLevel();
+            }
+        }
+        return pattern;
+    }
+
+    public static <T> double tripletDistance(Tree<T> tree1, Tree<T> tree2){
+        int[][] lcaTree1 = new int[0][];
+        try {
+            lcaTree1 = pairwiseLCA(tree1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int[][] lcaTree2 = new int[0][];
+        try {
+            lcaTree2 = pairwiseLCA(tree2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tripletDistance(lcaTree1, lcaTree2);
+    }
+
+
+    public static <T> double tripletDistance(int[][] lcaTree1, int[][] lcaTree2){
+        double dist = 0;
+        int n = lcaTree1.length;
+        for (int i=0; i<n; i++){
+            Map<Integer, Map<Integer, Integer>> temp = new HashMap<>();
+            for (int j=0; j<n; j++){
+                if (i==j) continue;
+                if (!temp.containsKey(lcaTree1[i][j])){
+                    temp.put(lcaTree1[i][j], new HashMap<>());
+                }
+                if (!temp.get(lcaTree1[i][j]).containsKey(lcaTree2[i][j])){
+                    temp.get(lcaTree1[i][j]).put(lcaTree2[i][j], 1);
+                }else{
+                    int count = temp.get(lcaTree1[i][j]).get(lcaTree2[i][j]);
+                    temp.get(lcaTree1[i][j]).put(lcaTree2[i][j], ++count);
+                }
+            }
+            Iterator<Integer> iter1 = temp.keySet().iterator();
+            Iterator<Integer> iter2;
+            while (iter1.hasNext()){
+                int l1 = iter1.next();
+                iter2 = temp.get(l1).keySet().iterator();
+                while (iter2.hasNext()){
+                    int l2 = iter2.next();
+                    int count = temp.get(l1).get(l2);
+                    if (temp.get(l1).get(l2) > 1){
+                        dist += (double) count * (count-1) / 2;
+                    }
+                }
+            }
+        }
+        dist = (double) n*(n-1)*(n-2)/6 - dist;
+        return dist;
+    }
+
+
     public static <T> Tree<T>[] contractTrees(Tree<T> tree1, Tree<T> tree2) throws Exception {
         boolean canContract = true;
         tree1 = TreeUtils.copy(tree1);

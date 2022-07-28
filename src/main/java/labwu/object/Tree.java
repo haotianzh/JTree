@@ -57,7 +57,6 @@ public class Tree<T> implements Cloneable{
         }
         Set<Tree<T>> hashSet = null;
         if (externalNodes != null){
-            System.out.println("sjdshfkshe");
             hashSet = new HashSet<>();
             hashSet.addAll(externalNodes);
             externalNodesSet = hashSet;

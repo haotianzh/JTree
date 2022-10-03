@@ -73,7 +73,6 @@ public class TripletDistance{
         int numWins = (length - windowSize + 1) % stepSize == 0? (length - windowSize + 1) / stepSize : (length - windowSize + 1) / stepSize + 1;
         double[][][] tripletDists = new double[numWins][windowSize][windowSize];
         int count = 0;
-        System.out.println("start filling..." + numWins);
         for (int i=0; i<length-windowSize+1; i+=stepSize){
             for (int p=0; p<windowSize; p++){
                 for (int q=p+1; q<windowSize; q++){
@@ -83,7 +82,6 @@ public class TripletDistance{
             }
             count ++;
         }
-        System.out.println("count" + count);
         return tripletDists;
     }
 

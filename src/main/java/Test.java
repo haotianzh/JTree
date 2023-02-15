@@ -6,8 +6,33 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+
+class RFParallelRunnable implements Runnable{
+    private HashSet<BitSet>[] all;
+    private int from;
+    private File file;
+    public RFParallelRunnable(File file){
+        this.file = file;
+    }
+    @Override
+    public void run() {
+        // TODO Auto-generated method stub
+        try {
+            Test.rfRuntime(file);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
+}
 
 public class Test {
     public void reIndex(File file, int offset) throws IOException {
@@ -82,8 +107,77 @@ public class Test {
         thread.join();
     }
 
+    public static void rfRuntime(File file) throws InterruptedException{
+        long start = System.currentTimeMillis();
+        // File file = new File(fileName);
+        try {
+            Tree<Integer>[] trees;
+            trees = TreeUtils.readFromNewick(file);
+            HashSet<BitSet>[] all = new HashSet[trees.length];
+            for (int i=0; i<trees.length; i++){
+                all[i] = TreeUtils.getHashedSplits(trees[i]);
+            }
+            for(int i=0; i<(all.length-1); i++){
+                // executorService.execute(new RFParallelRunnable(all, i));
+                for(int j=i+1; j<Math.min(i+50, all.length); j++) {
+                    double dis = TreeUtils.robinsonFoulds(all[i], all[j]);
+                //     // System.out.print(dis + " ");
+                }
+                // System.out.println();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+
+        // executorService.shutdown();
+        // executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
+
+
+        // long end  = System.currentTimeMillis();
+        // System.out.println("runtime: " + (end-start));
+    }
+
+
+
     public static void main(String[] args) throws Exception {
-        String fileName = "data/0.txt.trees";
+
+        ArrayList<String[]> arr = new ArrayList<>();
+        arr.add(new String[]{"1","2"});
+        arr.add(new String[]{"1","2","3"});
+        
+
+    //     long start = System.currentTimeMillis();
+    //     String fileName = "JTree/data/1.txt.trees";
+    //     File file = new File(fileName);
+    //     Test test = new Test();
+        
+    //     ExecutorService executorService = Executors.newFixedThreadPool(24);
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+    //     executorService.execute(new RFParallelRunnable(file));
+
+    //     executorService.shutdown();
+    //     executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
+    //    long end=System.currentTimeMillis();
+    //    System.out.println("runtime: "+(end-start)+"ms");
 //        long start=System.currentTimeMillis();
 //        new Test().method1(fileName);
 //        long end=System.currentTimeMillis();
@@ -108,19 +202,20 @@ public class Test {
 //        long end=System.currentTimeMillis();
 //        System.out.println(a);
 //        System.out.println("runtime: "+(end-start)+"ms");
-        String dirName = args[0];
-        String fileFormat = "data/%s.txt.trees";
-        File dir = new File(dirName);
-        Test test = new Test();
-        for (File f: dir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".trees");
-            }
-        })){
-            test.reIndex(f, 1);
-        }
+        // String dirName = args[0];
+        // String fileFormat = "data/%s.txt.trees";
+        // File dir = new File(dirName);
+        // Test test = new Test();
+        // for (File f: dir.listFiles(new FilenameFilter() {
+        //     @Override
+        //     public boolean accept(File dir, String name) {
+        //         return name.toLowerCase().endsWith(".trees");
+        //     }
+        // })){
+        //     test.rfRuntime(f);
+        // }
 //        File file = new File(String.format(fileFormat, 10));
 //        new Test().reIndex(file, 1);
     }
+
 }

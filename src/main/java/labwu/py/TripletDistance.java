@@ -85,7 +85,9 @@ public class TripletDistance{
         return tripletDists;
     }
 
-
+    public static void test_jar_file(){
+        System.out.println("This is a test!");
+    }
 
     public static void main(String[] args) throws Exception {
 //        String[][] newicks = new String[2][2];

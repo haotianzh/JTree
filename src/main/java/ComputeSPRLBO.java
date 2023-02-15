@@ -29,7 +29,7 @@ public class ComputeSPRLBO{
             tree.traverse();
             trees.add(tree);
         }
-
+        reader.close();
         long start = System.currentTimeMillis();
         for (int i = 0; i < trees.size() - 1; i++){
             for (int j = i + 1; j < trees.size(); j++) {

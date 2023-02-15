@@ -31,7 +31,8 @@ public class RFTest {
 
     public static void main(String[] args) {
         long start=System.currentTimeMillis();
-        method2(args[0]);
+        // method2(args[0]);
+        method2("JTree/data/2.txt.trees");
         long end = System.currentTimeMillis();
         System.out.println((end - start));
     }

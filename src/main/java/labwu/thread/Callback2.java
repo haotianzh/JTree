@@ -4,3 +4,4 @@ public interface Callback2 {
 
     void onFinish(int index, double[] values);
 }
+

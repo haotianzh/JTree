@@ -47,7 +47,7 @@ public class RFDistance{
         int numSamples = 100;
         String[][] newicks = new String[numSamples][];
         ArrayList<String> newick = new ArrayList<>();
-        String fileName = "JTree/data/1.txt.trees";
+        String fileName = "projects/JTree/data/1.txt.trees";
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
         while ((line=reader.readLine())!=null){

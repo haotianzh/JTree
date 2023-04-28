@@ -33,11 +33,11 @@ public class TripletDistance{
     }
 
 //    public static double[][] tripletDistsLoci;
-    public static double[][] tripletDistsLoci(String[] newicks, int windowSize, int stepSize, int cpuCount) throws Exception {
+    public static double[][] tripletDistsLoci(String[] newicks, int windowSize, int cpuCount) throws Exception {
         double[][] tripletDistsLoci;
         int length = newicks.length;
-        ExecutorService executorService = Executors.newFixedThreadPool(cpuCount);
-        // calculate LCA
+        ExecutorService executorService;
+        // calculate LCA in parallel
         int[][][] lca = new int[length][][];
         LCACallback lcaCallback = new LCACallback() {
             @Override
@@ -45,13 +45,14 @@ public class TripletDistance{
                 lca[index] = mat;
             } 
         }; 
+        executorService = Executors.newFixedThreadPool(cpuCount);
         for (int i=0; i<newicks.length; i++){
             LCARunnable task = new LCARunnable(i, newicks[i], lcaCallback);
             executorService.execute(task);
         }
         executorService.shutdown();
         executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
-        // execute parallel computing triplet distance using LCAs
+        //  calculate triplet distance using LCAs in parallel
         tripletDistsLoci = new double[length][windowSize];
         Callback2 callback = new Callback2() {
             @Override
@@ -70,8 +71,39 @@ public class TripletDistance{
     }
 
 
+    public static double[][][] tripletDistsWindow(String[][] newicks, int windowSize, int cpuCount) throws Exception{
+        // funciton for multiple samples
+        int numSample = newicks.length;
+        double[][][] tripletDistsWindow = new double[numSample][][];
+        for (int i=0; i<numSample; i++){
+            tripletDistsWindow[i] = tripletDistsWindow(newicks[i], windowSize, cpuCount);
+        }
+        return tripletDistsWindow;
+    }
+
+
+    public static double[][] tripletDistsWindow(String[] newicks, int windowSize, int cpuCount) throws Exception{
+        // this function is slightly different from the one above. here, the windowSize is the maximum distance between the last or the first 
+        //  (both forward and backward) SNP of the window and the current SNP, reuslts in the final shape as (numSNP, 2*windowSize+1)
+        //  while the windowSize in the previous method means the length of a window including the current SNP.
+        double[][] tripletDistsLoci = tripletDistsLoci(newicks, windowSize+1, cpuCount);
+        int length = tripletDistsLoci.length;
+        double[][] tripletDistsWindow = new double[length][2*windowSize + 1];
+        for (int i=0; i<length; i++){
+            // forward and backward
+            for (int j=1; j<=windowSize; j++){
+                if (i-j >= 0) tripletDistsWindow[i][windowSize-j] = tripletDistsLoci[i-j][j];
+                else tripletDistsWindow[i][windowSize-j] = -1;
+                if (i+j < length) tripletDistsWindow[i][windowSize+j] = tripletDistsLoci[i][j];
+                else tripletDistsWindow[i][windowSize+j] = -1;
+            }
+        }
+        return tripletDistsWindow;
+    }
+
+
     public static double[][][] tripletDistsOverlap(String[] newicks, int windowSize, int stepSize, int cpuCount) throws Exception {
-        double[][] tripletDistsLoci = tripletDistsLoci(newicks, windowSize, stepSize, cpuCount);
+        double[][] tripletDistsLoci = tripletDistsLoci(newicks, windowSize, cpuCount);
         int length = newicks.length;
         int numWins = (length - windowSize + 1) % stepSize == 0? (length - windowSize + 1) / stepSize : (length - windowSize + 1) / stepSize + 1;
         double[][][] tripletDists = new double[numWins][windowSize][windowSize];
@@ -114,11 +146,21 @@ public class TripletDistance{
             newicksList.add(line.split("\t")[1] + ";");
         }
         String[] newicks = new String[newicksList.size()];
+
         System.out.println("number of trees: " + newicks.length);
         newicks = newicksList.toArray(newicks);
         long start = System.currentTimeMillis();
     //    double[][] result = TripletDistance.tripletDistsLoci(newicks, 3, 1, 10);
-        double[][][] result1 = TripletDistance.tripletDistsOverlap(newicks, 50, 1, 24);
+        double[][] result1 = TripletDistance.tripletDistsWindow(newicks, 50, 24);
+        System.out.println(result1.length + " - " + result1[0].length);
+        for(i=0; i<result1[0].length; i++){
+            System.out.print(result1[result1.length-1][i] + " ");
+        }
+        System.out.println();
+        Tree tree = TreeUtils.readFromNewick(newicks[0]);
+        tree.traverse();
+        int p = tree.getExternalNodes().size();
+        System.out.println(p*(p-1)*(p-2)/6);
         long end = System.currentTimeMillis();
         System.out.println("running time: " + (end-start));
 

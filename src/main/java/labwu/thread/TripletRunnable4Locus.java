@@ -27,6 +27,8 @@ public class TripletRunnable4Locus implements Runnable {
             if (index+i < lca.length) {
                 double dis = TreeUtils.tripletDistance(lca[index+i], lca[index]);
                 tripletDist[i] = dis;
+            }else{
+                tripletDist[i] = -1;
             }
         }
         callback.onFinish(index, tripletDist);

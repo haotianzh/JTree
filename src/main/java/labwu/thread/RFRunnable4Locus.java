@@ -25,23 +25,30 @@ public class RFRunnable4Locus implements Runnable {
         this.callback = callback;
         this.which = which;
     }
-
+    // TODO: can be modified here for speeding up hash splitting.
     public void method1(){
         double[][] dist = new double[newicks.length][2*windowSize+1];
         HashSet<BitSet>[] all = new HashSet[newicks.length];
         int i = 0;
+        // long start = System.currentTimeMillis();
         for (String newick: newicks){
             all[i++] = TreeUtils.getHashedSplits(TreeUtils.readFromNewick(newick));
         }
-
+        // long end = System.currentTimeMillis();
+        // System.out.println("hashed splits: " + (end-start));
         for(i=0; i<newicks.length-1; i++){
             // executorService.execute(new RFParallelRunnable(all, i));
-            for(int j=Math.max(0, i-windowSize); j<i; j++){
-                dist[i][j-i+windowSize] = dist[j][windowSize+i-j];
+            for(int j=i-windowSize; j<i; j++){
+                if (j<0)
+                    dist[i][j-i+windowSize] = -1;
+                else
+                    dist[i][j-i+windowSize] = dist[j][windowSize+i-j];
             }
-            for(int j=i+1; j<=Math.min(i+windowSize, newicks.length-1); j++) {
-                double dis = TreeUtils.robinsonFoulds(all[i], all[j]);
-                dist[i][j-i+windowSize] = dis;
+            for(int j=i+1; j<=i+windowSize; j++) {
+                if (j >= newicks.length)
+                    dist[i][j-i+windowSize] = -1;
+                else 
+                    dist[i][j-i+windowSize] = TreeUtils.robinsonFoulds(all[i], all[j]);
             }
         }
         // callback function
@@ -83,14 +90,7 @@ public class RFRunnable4Locus implements Runnable {
 
 
     public static void main(String[] args) {
-        ArrayList<String>[] a = new ArrayList[2];
-        String[] s1 = new String[]{"a", "b"};
-        ArrayList<String> a1 = new ArrayList<>(Arrays.asList(s1));
-        String[] s2 = new String[]{"a", "b", "c"};
-        ArrayList<String> a2 = new ArrayList<>(Arrays.asList(s2));
-        a[0] = a1;
-        a[1] = a2;
-        System.out.println(a);
+
     }
     
 }

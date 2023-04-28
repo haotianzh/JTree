@@ -44,10 +44,10 @@ public class RFDistance{
     }
 
     public static void main(String[] args) throws Exception {
-        int numSamples = 100;
+        int numSamples = 1;
         String[][] newicks = new String[numSamples][];
         ArrayList<String> newick = new ArrayList<>();
-        String fileName = "projects/JTree/data/1.txt.trees";
+        String fileName = "JTree/data/1.txt.trees";
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
         while ((line=reader.readLine())!=null){
@@ -61,27 +61,30 @@ public class RFDistance{
         long end;
         start = System.currentTimeMillis();
         double[][][] result = RFDistance.rfDistanceWindow(newicks, 50, 20, "fast");
-        end = System.currentTimeMillis();
-        System.out.println("total runtime: "+ (end-start) + " ms");
-        System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
-        start = System.currentTimeMillis();
-        double[][][] result2 = RFDistance.rfDistanceWindow(newicks, 50, 20, "slow");
-        end = System.currentTimeMillis();
-        System.out.println("total runtime: "+ (end-start) + " ms");
-        System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
-        boolean equal = true;
-        for (int x=0; x<result.length; x++) {
-            // System.out.println();
-            // System.out.println("----------------");
-            for (int y = 0; y < result[0].length; y++) {
-                // System.out.println();
-                for (int z = 0; z < result[0][0].length; z++) {
-                    // System.out.print(result[x][y][z] + " ");
-                    if (result[x][y][z] != result2[x][y][z])
-                        equal = false;
-                }
-            }
+        for (int i =0; i < result[0][0].length; i++){
+            System.out.print(result[0][49][i] + " ");
         }
-        System.out.println("equal? " + equal);
+        end = System.currentTimeMillis();
+        System.out.println("total runtime: "+ (end-start) + " ms"); 
+        System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
+        // start = System.currentTimeMillis();
+        // double[][][] result2 = RFDistance.rfDistanceWindow(newicks, 50, 20, "slow");
+        // end = System.currentTimeMillis();
+        // System.out.println("total runtime: "+ (end-start) + " ms");
+        // System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
+        // boolean equal = true;
+        // for (int x=0; x<result.length; x++) {
+        //     // System.out.println();
+        //     // System.out.println("----------------");
+        //     for (int y = 0; y < result[0].length; y++) {
+        //         // System.out.println();
+        //         for (int z = 0; z < result[0][0].length; z++) {
+        //             // System.out.print(result[x][y][z] + " ");
+        //             if (result[x][y][z] != result2[x][y][z])
+        //                 equal = false;
+        //         }
+        //     }
+        // }
+        // System.out.println("equal? " + equal);
     }
 }

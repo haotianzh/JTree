@@ -2,6 +2,7 @@ package labwu.py;
 
 import labwu.thread.Callback;
 import labwu.thread.RFRunnable2;
+import labwu.thread.RFRunnable4BPWin;
 import labwu.thread.RFRunnable4Locus;
 
 import java.io.BufferedReader;
@@ -43,35 +44,56 @@ public class RFDistance{
         return rfDists;
     }
 
+
+    public static double[][][] rfDistanceBPWindow(String[][] newicks, int[][] positions, int windowSize, int stepSize, int cpuCount) throws InterruptedException {
+        double[][][] rfDists = new double[newicks.length][][];
+        ExecutorService executorService = Executors.newFixedThreadPool(cpuCount);
+        Callback callback = (index, rfDist) -> rfDists[index] = rfDist;
+        for (int i = 0; i< newicks.length; i++){
+            RFRunnable4BPWin task = new RFRunnable4BPWin(i, newicks[i], positions[i], windowSize, stepSize, callback, false);
+            executorService.execute(task);
+        }
+        executorService.shutdown();
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
+        return rfDists;
+    }
+
+
     public static void main(String[] args) throws Exception {
         int numSamples = 1;
         String[][] newicks = new String[numSamples][];
+        int[][] positions = new int[numSamples][];
         ArrayList<String> newick = new ArrayList<>();
-        String fileName = "JTree/data/1.txt.trees";
+        ArrayList<Integer> position = new ArrayList<>();
+        String fileName = "data/2.txt.trees";
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
         while ((line=reader.readLine())!=null){
-            line = line.trim().split("\t")[1]+";";
-            newick.add(line);
+            String treeStr = line.trim().split("\t")[1]+";";
+            String pos = line.trim().split("\t")[0];
+            position.add(Integer.valueOf(pos));
+            newick.add(treeStr);
         }
         for(int i=0; i<numSamples; i++){
             newicks[i] = newick.toArray(new String[0]);
+            positions[i] = position.stream().mapToInt(k -> k).toArray();
         }
         long start;
         long end;
         start = System.currentTimeMillis();
-        double[][][] result = RFDistance.rfDistanceWindow(newicks, 50, 20, "fast");
-        for (int i =0; i < result[0][0].length; i++){
-            System.out.print(result[0][49][i] + " ");
-        }
+        double[][][] result = RFDistance.rfDistanceBPWindow(newicks, positions, 100, 2, 10);
+
+        // for (int i =0; i < result[0].length; i++){
+        //     System.out.print(result[][i] + " ");
+        // }
         end = System.currentTimeMillis();
         System.out.println("total runtime: "+ (end-start) + " ms"); 
-        System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
+        // System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
         // start = System.currentTimeMillis();
         // double[][][] result2 = RFDistance.rfDistanceWindow(newicks, 50, 20, "slow");
         // end = System.currentTimeMillis();
         // System.out.println("total runtime: "+ (end-start) + " ms");
-        // System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
+        System.out.println(result.length + " " + result[0].length + " " + result[0][0].length);
         // boolean equal = true;
         // for (int x=0; x<result.length; x++) {
         //     // System.out.println();
